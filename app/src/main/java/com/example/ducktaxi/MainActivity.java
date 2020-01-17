@@ -10,8 +10,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -55,6 +57,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        final boolean[] shouldSend = {false};
+
+        findViewById(R.id.Send).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                shouldSend[0] = true;
+            }
+        });
+
+
+
         Thread Server = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -85,12 +99,27 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println( " THE CLIENT"+" "+ connected.getInetAddress() +":"+connected.getPort()+" IS CONNECTED ");
 
                     BufferedReader inFromClient = null;
+                    BufferedWriter socketWriter = null;
                     try {
-                        inFromClient = new BufferedReader(new InputStreamReader(connected.getInputStream()));
+                        socketWriter = new BufferedWriter(new OutputStreamWriter(connected.getOutputStream(), "UTF-8"));
+                        inFromClient = new BufferedReader(new InputStreamReader(connected.getInputStream(),"UTF-8"));
                     } catch (IOException e) {
                         e.printStackTrace();
                         System.out.println(e);
                     }
+
+                    if (shouldSend[0]) {
+                        try {
+                            assert socketWriter != null;
+                            socketWriter.write((X.getText()).toString() + " " + (Y.getText()).toString());
+                            socketWriter.write("\n");
+                            socketWriter.flush();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        shouldSend[0] = false;
+                    }
+
 
                     while ( true )
                     {
